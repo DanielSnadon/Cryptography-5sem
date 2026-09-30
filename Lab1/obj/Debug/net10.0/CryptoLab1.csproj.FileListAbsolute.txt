@@ -1,0 +1,15 @@
+/home/snadon/Cryptography-5sem/Lab1/bin/Debug/net10.0/CryptoLab1
+/home/snadon/Cryptography-5sem/Lab1/bin/Debug/net10.0/CryptoLab1.deps.json
+/home/snadon/Cryptography-5sem/Lab1/bin/Debug/net10.0/CryptoLab1.runtimeconfig.json
+/home/snadon/Cryptography-5sem/Lab1/bin/Debug/net10.0/CryptoLab1.dll
+/home/snadon/Cryptography-5sem/Lab1/bin/Debug/net10.0/CryptoLab1.pdb
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.GeneratedMSBuildEditorConfig.editorconfig
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.AssemblyInfoInputs.cache
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.AssemblyInfo.cs
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.csproj.CoreCompileInputs.cache
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.sourcelink.json
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.dll
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/refint/CryptoLab1.dll
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.pdb
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/CryptoLab1.genruntimeconfig.cache
+/home/snadon/Cryptography-5sem/Lab1/obj/Debug/net10.0/ref/CryptoLab1.dll
