@@ -7,5 +7,12 @@ public interface IKeyExpansion
 
 public interface IRoundFunction
 {
-    byte[] Apply(byte[] inputBlock, byte[] roundKey);
+    byte[] RoundFunc(byte[] inputBlock, byte[] roundKey);
+}
+
+public interface IBlockCipher
+{
+    void SetKey(byte[] key);
+    byte[] EncryptBlock(byte[] block);
+    byte[] DecryptBlock(byte[] block);
 }
