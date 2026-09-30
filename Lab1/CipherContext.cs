@@ -190,17 +190,20 @@ public class CipherContext
         byte[] paddedData = ApplyPadding(data);
         int blockSize = cipher.BlockSizeBytes;
         byte[] result = new byte[paddedData.Length];
+    
+        int blockCount = paddedData.Length / blockSize;
 
-        for (int offset = 0; offset < paddedData.Length; offset += blockSize)
+        Parallel.For(0, blockCount, blockIndex =>
         {
-            byte[] block = new byte[blockSize];
+            int offset = blockIndex * blockSize;
 
+            byte[] block = new byte[blockSize];
             Array.Copy(paddedData, offset, block, 0, blockSize);
 
             byte[] encryptedBlock = cipher.EncryptBlock(block);
 
             Array.Copy(encryptedBlock, 0, result, offset, blockSize);
-        }
+        });
 
         return result;  
     }
@@ -323,20 +326,31 @@ public class CipherContext
         int blockSize = cipher.BlockSizeBytes;
         byte[] result = new byte[data.Length];
 
-        byte[] counter = (byte[])GetIV(blockSize).Clone();
+        int blockCount = data.Length / blockSize;
+        byte[][] counters = new byte[blockCount][];
 
-        for (int offset = 0; offset < data.Length; offset += blockSize)
+        byte[] nextCounter =
+            (byte[])GetIV(blockSize).Clone();
+
+        for (int i = 0; i < blockCount; i++)
         {
+            counters[i] = (byte[])nextCounter.Clone();
+
+            if (i + 1 < blockCount && !TryCount(nextCounter)) throw new InvalidOperationException("Ошибка ProcessCTR: счётчик переполнился.");
+        }
+
+        Parallel.For(0, blockCount, blockIndex =>
+        {
+            int offset = blockIndex * blockSize;
+
             byte[] inputBlock = new byte[blockSize];
             Array.Copy(data, offset, inputBlock, 0, blockSize);
 
-            byte[] tempBlock = cipher.EncryptBlock(counter);
+            byte[] tempBlock = cipher.EncryptBlock(counters[blockIndex]);
             byte[] outputBlock = XorBlocks(inputBlock, tempBlock);
 
             Array.Copy(outputBlock, 0, result, offset, blockSize);
-
-            if (offset + blockSize < data.Length && !TryCount(counter)) throw new InvalidOperationException("Ошибка ProcessCTR: счётчик переполнился.");
-        }
+        });
 
         return result;
     }
@@ -378,21 +392,35 @@ public class CipherContext
     {
         int blockSize = cipher.BlockSizeBytes;
         byte[] delta = GetDelta(blockSize);
-        byte[] counter = (byte[])GetIV(blockSize).Clone();
         byte[] result = new byte[data.Length];
+        int blockCount = data.Length / blockSize;
+        byte[][] counters = new byte[blockCount][];
 
-        for (int offset = 0; offset < data.Length; offset += blockSize)
+        byte[] nextCounter =
+            (byte[])GetIV(blockSize).Clone();
+
+        for (int i = 0; i < blockCount; i++)
         {
+            counters[i] = (byte[])nextCounter.Clone();
+
+            if (i + 1 < blockCount)
+            {
+                nextCounter = AddBlocks(nextCounter, delta);
+            }
+        }
+
+        Parallel.For(0, blockCount, blockIndex =>
+        {
+            int offset = blockIndex * blockSize;
+
             byte[] inputBlock = new byte[blockSize];
             Array.Copy(data, offset, inputBlock, 0, blockSize);
 
-            byte[] tempBlock = cipher.EncryptBlock(counter);
+            byte[] tempBlock = cipher.EncryptBlock(counters[blockIndex]);
             byte[] outputBlock = XorBlocks(inputBlock, tempBlock);
 
             Array.Copy(outputBlock, 0, result, offset, blockSize);
-
-            counter = AddBlocks(counter, delta);
-        }
+        });
 
         return result;
     }
@@ -440,16 +468,19 @@ public class CipherContext
 
         byte[] decryptedData = new byte[data.Length];
 
-        for (int offset = 0; offset < data.Length; offset += blockSize)
-        {
-            byte[] block = new byte[blockSize];
+        int blockCount = data.Length / blockSize;
 
+        Parallel.For(0, blockCount, blockIndex =>
+        {
+            int offset = blockIndex * blockSize;
+
+            byte[] block = new byte[blockSize];
             Array.Copy(data, offset, block, 0, blockSize);
 
             byte[] decryptedBlock = cipher.DecryptBlock(block);
 
             Array.Copy(decryptedBlock, 0, decryptedData, offset, blockSize);
-        }
+        });
 
         return RemovePadding(decryptedData);
     }
@@ -464,17 +495,32 @@ public class CipherContext
         byte[] previousBlock = GetIV(blockSize);
         byte[] decryptedData = new byte[data.Length];
 
-        for (int offset = 0; offset < data.Length; offset += blockSize)
+        int blockCount = data.Length / blockSize;
+        byte[] iv = GetIV(blockSize);
+
+        Parallel.For(0, blockCount, blockIndex =>
         {
+            int offset = blockIndex * blockSize;
+
             byte[] cipherBlock = new byte[blockSize];
             Array.Copy(data, offset, cipherBlock, 0, blockSize);
 
             byte[] decryptedBlock = cipher.DecryptBlock(cipherBlock);
-            byte[] pBlock = XorBlocks(decryptedBlock, previousBlock);
 
+            byte[] previousBlock = new byte[blockSize];
+
+            if (blockIndex == 0)
+            {
+                Array.Copy(iv, previousBlock, blockSize);
+            }
+            else
+            {
+                Array.Copy(data, offset - blockSize, previousBlock, 0, blockSize);
+            }
+
+            byte[] pBlock = XorBlocks(decryptedBlock, previousBlock);
             Array.Copy(pBlock, 0, decryptedData, offset, blockSize);
-            previousBlock = cipherBlock;
-        }
+        });
 
         return RemovePadding(decryptedData);
     }
@@ -518,18 +564,32 @@ public class CipherContext
         byte[] decryptedData = new byte[data.Length];
         byte[] prevBlock = GetIV(blockSize);
 
-        for (int offset = 0; offset < data.Length; offset += blockSize)
+        int blockCount = data.Length / blockSize;
+        byte[] iv = GetIV(blockSize);
+
+        Parallel.For(0, blockCount, blockIndex =>
         {
+            int offset = blockIndex * blockSize;
+
             byte[] cipherBlock = new byte[blockSize];
             Array.Copy(data, offset, cipherBlock, 0, blockSize);
 
-            byte[] tempBlock = cipher.EncryptBlock(prevBlock);
+            byte[] previousBlock = new byte[blockSize];
+
+            if (blockIndex == 0)
+            {
+                Array.Copy(iv, previousBlock, blockSize);
+            }
+            else
+            {
+                Array.Copy(data, offset - blockSize, previousBlock, 0, blockSize);
+            }
+
+            byte[] tempBlock = cipher.EncryptBlock(previousBlock);
             byte[] pBlock = XorBlocks(cipherBlock, tempBlock);
 
             Array.Copy(pBlock, 0, decryptedData, offset, blockSize);
-
-            prevBlock = cipherBlock;
-        }
+        });
 
         return RemovePadding(decryptedData);
     }
