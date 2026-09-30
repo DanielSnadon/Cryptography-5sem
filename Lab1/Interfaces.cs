@@ -12,6 +12,8 @@ public interface IRoundFunction
 
 public interface IBlockCipher
 {
+    int BlockSizeBytes {get; }
+    
     void SetKey(byte[] key);
     byte[] EncryptBlock(byte[] block);
     byte[] DecryptBlock(byte[] block);
