@@ -29,10 +29,11 @@ FeistelNetwork.cs
 #### 1.4:
 
 DesKeyExpansion.cs
+Des.cs
 
 #### 1.5:
 
-
+DesTests.cs
 
 #### 1.6:
 
