@@ -13,14 +13,14 @@
 #### 1.1:
 
 BitPermutation.cs
-Test1.cs
+Test.cs
 
 #### 1.2:
 
 Interfaces.cs
 CryptoModes.cs
 CipherContext.cs
-Test2.cs
+modeTestDLC.cs
 
 #### 1.3:
 

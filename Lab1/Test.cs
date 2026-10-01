@@ -21,10 +21,14 @@ IKeyExpansion keyExpansion = new DesKeyExpansion();
 
 Console.WriteLine("-^- 1.4 Test (START) -^-");
 
-byte[][] roundKeys = keyExpansion.GenerateRoundKeys(key);
+byte[] rightHalf = { 0xF0, 0xAA, 0xF0, 0xAA };
+byte[] roundKey = { 0x1B, 0x02, 0xEF, 0xFC, 0x70, 0x72 };
+byte[] expected = { 0x23, 0x4A, 0xA9, 0xBB };
 
-Console.WriteLine($"Количество раундовых ключей: {roundKeys.Length}");
-Console.WriteLine($"Размер первого ключа: {roundKeys[0].Length} байт");
-Console.WriteLine($"Первый раундовый ключ: {BitConverter.ToString(roundKeys[0])}");
+IRoundFunction roundFunction = new DesRoundFunction();
+byte[] actual = roundFunction.RoundFunc(rightHalf, roundKey);
+
+Console.WriteLine($"Ожидается: {BitConverter.ToString(expected)}");
+Console.WriteLine($"Получено:  {BitConverter.ToString(actual)}");
 
 Console.WriteLine("-v- 1.4 Test (END) -v-");
