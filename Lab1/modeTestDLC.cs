@@ -39,8 +39,6 @@ public static class TestCipherContext
         };
 
         int testNumber = 1;
-        
-        Console.WriteLine("-^- 1.2 Test (START) -^-");
 
         foreach (EncryptionMode mode in modes)
         {
@@ -75,8 +73,6 @@ public static class TestCipherContext
         }
 
         Console.WriteLine($"Все {testNumber - 1} теста пройдены.");
-
-        Console.WriteLine("-v- 1.2 Test (END) -v-");
     }
 
     private sealed class TestBlockCipher : IBlockCipher
