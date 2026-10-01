@@ -38,5 +38,9 @@ DesTests.cs
 #### 1.6:
 
 DesAdapter.cs
+DealKeyExpansion.cs
+Deal.cs
 
 #### 1.7:
+
+DealTests.cs

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace CryptoLab1;
 
-public static class Test
+public static class DesTest
 {
     public static async Task RunAsync()
     {
@@ -80,8 +80,8 @@ public static class Test
 
             if (!File.Exists(inputPath)) throw new FileNotFoundException("Ошибка FilesTest: файл не найден.");
 
-            string encryptedPath = Path.Combine(outputDirectory, fileName + ".encrypted");
-            string decryptedPath = Path.Combine(outputDirectory, "new_" + fileName);
+            string encryptedPath = Path.Combine(outputDirectory, fileName + ".des-encrypted");
+            string decryptedPath = Path.Combine(outputDirectory, "des_" + fileName);
 
             CipherContext context = new CipherContext(new Des(), key, mode, PaddingScheme.Pkcs7, initializationVector);
 

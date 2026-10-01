@@ -4,8 +4,8 @@ Console.WriteLine("-^- 1.1 Test (START) -^-");
 
 byte[] input = {0b_1011_0010};
 int[] pblock = {1,3,8};
-byte[] res1 = BitPermutation.Permutate(input, pblock, true, 1); // От старшего
-byte[] res2 = BitPermutation.Permutate(input, pblock, false, 1); // От младшего
+byte[] res1 = BitPermutation.Permutate(input, pblock, true, 1);
+byte[] res2 = BitPermutation.Permutate(input, pblock, false, 1);
 
 Console.WriteLine($"Test 1: {BitConverter.ToString(res1)}");
 Console.WriteLine($"Test 2: {BitConverter.ToString(res2)}");
@@ -47,7 +47,7 @@ Console.WriteLine("-v- 1.4 Test (END) -v-");
 
 Console.WriteLine("-^- 1.5 Test (START) -^-");
 
-await Test.RunAsync();
+await DesTest.RunAsync();
 
 Console.WriteLine("-v- 1.5 Test (END) -v-");
 
@@ -78,3 +78,12 @@ Console.WriteLine($"Зашифрованный блок: {Convert.ToHexString(en
 Console.WriteLine($"Расшифрованный блок: {Convert.ToHexString(decryptedBlock)}");
 
 Console.WriteLine("-v- 1.6 Test (END) -v-");
+
+
+
+Console.WriteLine("-^- 1.7 Test (START) -^-");
+
+await DealTests.RunAsync();
+
+Console.WriteLine("-v- 1.7 Test (END) -v-");
+
