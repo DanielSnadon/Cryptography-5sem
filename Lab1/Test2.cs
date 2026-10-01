@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 
 namespace CryptoLab1;
 
-// Honestly AI generated. For now?
-
 public static class TestCipherContext
 {
     public static async Task RunAsync()
@@ -61,9 +59,7 @@ public static class TestCipherContext
 
                     bool passed = originalData.SequenceEqual(decryptedData);
 
-                    Console.WriteLine(
-                        $"Test {testNumber}: {mode}, {paddingScheme}, {originalData.Length} bytes - " +
-                        (passed ? "OK" : "FAILED"));
+                    Console.WriteLine($"Тест {testNumber}: {mode}, {paddingScheme}, {originalData.Length} bytes - " + (passed ? "YES!" : "NO..."));
 
                     if (!passed)
                     {
@@ -71,7 +67,7 @@ public static class TestCipherContext
                         Console.WriteLine($"Decrypted: {BitConverter.ToString(decryptedData)}");
 
                         throw new InvalidOperationException(
-                            $"Test failed: mode={mode}, padding={paddingScheme}.");
+                            $"Тест failed: mode={mode}, padding={paddingScheme}.");
                     }
 
                     testNumber++;
@@ -97,7 +93,7 @@ public static class TestCipherContext
                 throw new ArgumentNullException(nameof(key));
 
             if (key.Length == 0)
-                throw new ArgumentException("Test key cannot be empty.", nameof(key));
+                throw new ArgumentException("Ошибка SetKey: ключ не может быть пустым.", nameof(key));
 
             this.key = (byte[])key.Clone();
         }
@@ -112,16 +108,16 @@ public static class TestCipherContext
             return TransformBlock(block);
         }
 
-        private byte[] TransformBlock(byte[] block)
+        private byte[] TransformBlock(byte[] block) // Временная замена DES/DEAL
         {
             if (block == null)
                 throw new ArgumentNullException(nameof(block));
 
             if (block.Length != TestBlockSizeBytes)
-                throw new ArgumentException("Block must contain exactly 8 bytes.", nameof(block));
+                throw new ArgumentException("Ошибка TransformBlock: блок должен содержать ровно 8 байт.", nameof(block));
 
             if (key.Length == 0)
-                throw new InvalidOperationException("SetKey must be called before block processing.");
+                throw new InvalidOperationException("Ошибка TransformBlock: SetKey must be called before block processing.");
 
             byte[] result = new byte[TestBlockSizeBytes];
 
