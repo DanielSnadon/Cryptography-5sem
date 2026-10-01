@@ -35,24 +35,6 @@ Console.WriteLine("-v- 1.4 Test (END) -v-");
 
 Console.WriteLine("-^- 1.5 Test (START) -^-");
 
-byte[] key =
-{
-    0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1
-};
-
-byte[] plaintext =
-{
-    0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
-};
-
-Des des = new Des();
-des.SetKey(key);
-
-byte[] ciphertext = des.EncryptBlock(plaintext);
-byte[] decryptedText = des.DecryptBlock(ciphertext);
-
-Console.WriteLine($"Открытый текст:   {BitConverter.ToString(plaintext)}");
-Console.WriteLine($"Шифротекст:       {BitConverter.ToString(ciphertext)}");
-Console.WriteLine($"После расшифровки: {BitConverter.ToString(decryptedText)}");
+await Test.RunAsync();
 
 Console.WriteLine("-v- 1.5 Test (END) -v-");

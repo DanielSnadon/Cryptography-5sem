@@ -29,10 +29,7 @@ public class Des : IBlockCipher
 
     public Des()
     {
-        feistelNetwork = new FeistelNetwork(
-            new DesKeyExpansion(),
-            new DesRoundFunction(),
-            BlockSizeBytes);
+        feistelNetwork = new FeistelNetwork(new DesKeyExpansion(), new DesRoundFunction(), BlockSizeBytes);
     }
 
     public void SetKey(byte[] key)
