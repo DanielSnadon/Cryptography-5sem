@@ -66,8 +66,7 @@ public static class TestCipherContext
                         Console.WriteLine($"Original:  {BitConverter.ToString(originalData)}");
                         Console.WriteLine($"Decrypted: {BitConverter.ToString(decryptedData)}");
 
-                        throw new InvalidOperationException(
-                            $"Тест failed: mode={mode}, padding={paddingScheme}.");
+                        throw new InvalidOperationException($"Тест failed: mode={mode}, padding={paddingScheme}.");
                     }
 
                     testNumber++;
@@ -75,7 +74,7 @@ public static class TestCipherContext
             }
         }
 
-        Console.WriteLine($"All {testNumber - 1} CipherContext tests passed.");
+        Console.WriteLine($"Все {testNumber - 1} теста пройдены.");
 
         Console.WriteLine("-v- 1.2 Test (END) -v-");
     }

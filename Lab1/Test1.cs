@@ -11,3 +11,20 @@ Console.WriteLine($"Test 2: {BitConverter.ToString(res2)}");
 Console.WriteLine("-v- 1.1 Test (END) -v-");
 
 await TestCipherContext.RunAsync();
+
+byte[] key =
+{
+    0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1
+};
+
+IKeyExpansion keyExpansion = new DesKeyExpansion();
+
+Console.WriteLine("-^- 1.4 Test (START) -^-");
+
+byte[][] roundKeys = keyExpansion.GenerateRoundKeys(key);
+
+Console.WriteLine($"Количество раундовых ключей: {roundKeys.Length}");
+Console.WriteLine($"Размер первого ключа: {roundKeys[0].Length} байт");
+Console.WriteLine($"Первый раундовый ключ: {BitConverter.ToString(roundKeys[0])}");
+
+Console.WriteLine("-v- 1.4 Test (END) -v-");

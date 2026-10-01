@@ -20,14 +20,15 @@ Test1.cs
 Interfaces.cs
 CryptoModes.cs
 CipherContext.cs
+Test2.cs
 
 #### 1.3:
 
-
+FeistelNetwork.cs
 
 #### 1.4:
 
-
+DesKeyExpansion.cs
 
 #### 1.5:
 
