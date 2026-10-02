@@ -7,6 +7,10 @@ int[] pblock = {1,3,8};
 byte[] res1 = BitPermutation.Permutate(input, pblock, true, 1);
 byte[] res2 = BitPermutation.Permutate(input, pblock, false, 1);
 
+// input: 0xB2 = 10110010
+// res1:  0x33 = 00110011
+// res2:  0x36 = 00110110
+
 Console.WriteLine($"Test 1: {BitConverter.ToString(res1)}");
 Console.WriteLine($"Test 2: {BitConverter.ToString(res2)}");
 
