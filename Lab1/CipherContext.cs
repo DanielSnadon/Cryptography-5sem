@@ -13,10 +13,9 @@ public class CipherContext
 
     public CipherContext(IBlockCipher cipher, byte[] key, EncryptionMode encryptionMode, PaddingScheme paddingScheme, byte[]? initializationVector = null, params object[] additionalParameters)
     {
-        if (cipher == null) throw new ArgumentNullException("Ошибка CipherContext: пустой объект шифра.");
         if (key == null) throw new ArgumentNullException("Ошибка CipherContext: пустой ключ.");
 
-        this.cipher = cipher;
+        this.cipher = cipher ?? throw new ArgumentNullException("Ошибка CipherContext: пустой объект шифра.");
         this.encryptionMode = encryptionMode;
         this.paddingScheme = paddingScheme;
         this.initializationVector = initializationVector;
@@ -31,22 +30,27 @@ public class CipherContext
         int blockSize = cipher.BlockSizeBytes;
         if (blockSize <= 0) throw new InvalidOperationException("Ошибка ApplyPadding: размер блока должен быть больше нуля.");
 
-        int paddingLength = blockSize - data.Length % blockSize;
-
-        if (paddingScheme == PaddingScheme.Zeros &&
-            data.Length % blockSize == 0)
+        if (paddingScheme == PaddingScheme.Zeros)
         {
-            paddingLength = 0;
+            int combinedLength = data.Length + 1;
+
+            int zeroCount = (blockSize - combinedLength % blockSize) % blockSize;
+
+            byte[] paddedZeros = new byte[combinedLength + zeroCount];
+
+            Array.Copy(data, paddedZeros, data.Length);
+            paddedZeros[data.Length] = 0x80;
+
+            return paddedZeros;
         }
+
+        int paddingLength = blockSize - data.Length % blockSize;
 
         byte[] paddedData = new byte[data.Length + paddingLength];
         Array.Copy(data, paddedData, data.Length);
 
         switch (paddingScheme)
         {
-            case PaddingScheme.Zeros:
-                break;
-
             case PaddingScheme.AnsiX923:
                 paddedData[paddedData.Length - 1] = (byte)paddingLength;
                 break;
@@ -87,12 +91,20 @@ public class CipherContext
         switch (paddingScheme)
         {
             case PaddingScheme.Zeros:
-                while (paddingLength < data.Length &&
-                    data[data.Length - 1 - paddingLength] == 0)
+            {
+                int finalBlockStart = data.Length - blockSize;
+                int markerIndex = data.Length - 1;
+
+                while (markerIndex >= finalBlockStart && data[markerIndex] == 0)
                 {
-                    paddingLength++;
+                    markerIndex--;
                 }
+
+                if (markerIndex < finalBlockStart || data[markerIndex] != 0x80) throw new FormatException("Ошибка RemovePadding: маркер Zeros не найден.");
+
+                paddingLength = data.Length - markerIndex;
                 break;
+            }
 
             case PaddingScheme.AnsiX923:
             case PaddingScheme.Pkcs7:
@@ -104,7 +116,6 @@ public class CipherContext
                     throw new FormatException("Ошибка RemovePadding: некорректная длина набивки.");
                 }
 
-                // What if...
                 if (paddingScheme == PaddingScheme.Pkcs7)
                 {
                     for (int i = data.Length - paddingLength; i < data.Length; i++)
@@ -641,16 +652,339 @@ public class CipherContext
 
     public async Task EncryptFile(string inputPath, string outputPath)
     {
-        byte[] data = await File.ReadAllBytesAsync(inputPath);
-        byte[] encryptedData = await EncryptAsync(data);
-        await File.WriteAllBytesAsync(outputPath, encryptedData);
+        const int bufferSize = 64 * 1024;
+        int blockSize = cipher.BlockSizeBytes;
+
+        string fullInputPath = Path.GetFullPath(inputPath);
+        string fullOutputPath = Path.GetFullPath(outputPath);
+
+        if (string.Equals(fullInputPath, fullOutputPath, StringComparison.Ordinal))
+            throw new ArgumentException("Ошибка EncryptFile: входной и выходной файлы должны различаться.");
+
+        string? outputDirectory = Path.GetDirectoryName(fullOutputPath);
+
+        if (!string.IsNullOrEmpty(outputDirectory))
+            Directory.CreateDirectory(outputDirectory);
+
+        byte[] readBuffer = new byte[bufferSize];
+        byte[] inputBlock = new byte[blockSize];
+        byte[] writeBuffer = new byte[bufferSize];
+
+        int inputBlockLength = 0;
+        int writeBufferLength = 0;
+
+        await using FileStream input = new FileStream(fullInputPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+        await using FileStream output = new FileStream(fullOutputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+        FileState state = CreateFileState(blockSize);
+
+        async Task FlushWriteBufferAsync()
+        {
+            if (writeBufferLength == 0)
+                return;
+
+            await output.WriteAsync(writeBuffer.AsMemory(0, writeBufferLength));
+            writeBufferLength = 0;
+        }
+
+        async Task WriteBytesAsync(byte[] bytes)
+        {
+            int sourceOffset = 0;
+
+            while (sourceOffset < bytes.Length)
+            {
+                int copyLength = Math.Min(writeBuffer.Length - writeBufferLength, bytes.Length - sourceOffset);
+
+                Array.Copy(bytes, sourceOffset, writeBuffer, writeBufferLength, copyLength);
+
+                sourceOffset += copyLength;
+                writeBufferLength += copyLength;
+
+                if (writeBufferLength == writeBuffer.Length)
+                    await FlushWriteBufferAsync();
+            }
+        }
+
+        int bytesRead;
+
+        while ((bytesRead = await input.ReadAsync(readBuffer.AsMemory())) > 0)
+        {
+            int readOffset = 0;
+
+            while (readOffset < bytesRead)
+            {
+                int bytesToCopy = Math.Min(blockSize - inputBlockLength, bytesRead - readOffset);
+
+                Array.Copy(readBuffer, readOffset, inputBlock, inputBlockLength, bytesToCopy);
+
+                readOffset += bytesToCopy;
+                inputBlockLength += bytesToCopy;
+
+                if (inputBlockLength == blockSize)
+                {
+                    byte[] encryptedBlock = TransformFileBlock(inputBlock, state, encrypt: true);
+
+                    await WriteBytesAsync(encryptedBlock);
+
+                    Array.Clear(inputBlock, 0, inputBlock.Length);
+                    inputBlockLength = 0;
+                }
+            }
+        }
+
+        byte[] finalData = new byte[inputBlockLength];
+        Array.Copy(inputBlock, finalData, inputBlockLength);
+
+        byte[] paddedData = ApplyPadding(finalData);
+
+        for (int offset = 0; offset < paddedData.Length; offset += blockSize)
+        {
+            byte[] block = new byte[blockSize];
+            Array.Copy(paddedData, offset, block, 0, blockSize);
+
+            byte[] encryptedBlock = TransformFileBlock(block, state, encrypt: true);
+
+            await WriteBytesAsync(encryptedBlock);
+        }
+
+        await FlushWriteBufferAsync();
+        await output.FlushAsync();
     }
 
     public async Task DecryptFile(string inputPath, string outputPath)
     {
-        byte[] data = await File.ReadAllBytesAsync(inputPath);
-        byte[] decryptedData = await DecryptAsync(data);
-        await File.WriteAllBytesAsync(outputPath, decryptedData);
+        const int bufferSize = 64 * 1024;
+        int blockSize = cipher.BlockSizeBytes;
+
+        string fullInputPath = Path.GetFullPath(inputPath);
+        string fullOutputPath = Path.GetFullPath(outputPath);
+
+        if (string.Equals(fullInputPath, fullOutputPath, StringComparison.Ordinal)) throw new ArgumentException("Ошибка DecryptFile: входной и выходной файлы должны различаться.");
+
+        string? outputDirectory = Path.GetDirectoryName(fullOutputPath);
+
+        if (!string.IsNullOrEmpty(outputDirectory))
+            Directory.CreateDirectory(outputDirectory);
+
+        byte[] readBuffer = new byte[bufferSize];
+        byte[] inputBlock = new byte[blockSize];
+        byte[] writeBuffer = new byte[bufferSize];
+
+        int inputBlockLength = 0;
+        int writeBufferLength = 0;
+        byte[]? waitingBlock = null;
+
+        await using FileStream input = new FileStream(fullInputPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        await using FileStream output = new FileStream(fullOutputPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+        FileState state = CreateFileState(blockSize);
+
+        async Task FlushWriteBufferAsync()
+        {
+            if (writeBufferLength == 0)
+                return;
+
+            await output.WriteAsync(writeBuffer.AsMemory(0, writeBufferLength));
+            writeBufferLength = 0;
+        }
+
+        async Task WriteBytesAsync(byte[] bytes)
+        {
+            int sourceOffset = 0;
+
+            while (sourceOffset < bytes.Length)
+            {
+                int copyLength = Math.Min(writeBuffer.Length - writeBufferLength, bytes.Length - sourceOffset);
+
+                Array.Copy(bytes, sourceOffset, writeBuffer, writeBufferLength, copyLength);
+
+                sourceOffset += copyLength;
+                writeBufferLength += copyLength;
+
+                if (writeBufferLength == writeBuffer.Length)
+                    await FlushWriteBufferAsync();
+            }
+        }
+
+        int bytesRead;
+
+        while ((bytesRead = await input.ReadAsync(readBuffer.AsMemory())) > 0)
+        {
+            int readOffset = 0;
+
+            while (readOffset < bytesRead)
+            {
+                int bytesToCopy = Math.Min(blockSize - inputBlockLength, bytesRead - readOffset);
+
+                Array.Copy(readBuffer, readOffset, inputBlock, inputBlockLength, bytesToCopy);
+
+                readOffset += bytesToCopy;
+                inputBlockLength += bytesToCopy;
+
+                if (inputBlockLength == blockSize)
+                {
+                    byte[] plainBlock = TransformFileBlock(inputBlock, state, encrypt: false);
+
+                    if (waitingBlock != null)
+                        await WriteBytesAsync(waitingBlock);
+
+                    waitingBlock = plainBlock;
+
+                    Array.Clear(inputBlock, 0, inputBlock.Length);
+                    inputBlockLength = 0;
+                }
+            }
+        }
+
+        if (inputBlockLength != 0) throw new FormatException("Ошибка DecryptFile: длина шифротекста не кратна размеру блока.");
+
+        if (waitingBlock == null) throw new FormatException("Ошибка DecryptFile: нельзя расшифровать пустой файл.");
+
+        byte[] finalData = RemovePadding(waitingBlock);
+        await WriteBytesAsync(finalData);
+
+        await FlushWriteBufferAsync();
+        await output.FlushAsync();
+    }
+
+    // Для чтения piece by piece...
+
+    private sealed class FileState
+    {
+        public byte[]? previousBlock;
+        public byte[]? previousPlainBlock;
+        public byte[]? previousCipherBlock;
+        public byte[]? counter;
+        public byte[] delta = Array.Empty<byte>();
+        public bool overflowed;
+    }
+
+    private FileState CreateFileState(int blockSize)
+    {
+        FileState state = new FileState();
+
+        switch (encryptionMode)
+        {
+            case EncryptionMode.Cbc:
+            case EncryptionMode.Cfb:
+            case EncryptionMode.Ofb:
+                state.previousBlock = GetIV(blockSize);
+                break;
+
+            case EncryptionMode.Pcbc:
+                state.previousPlainBlock = GetIV(blockSize);
+                state.previousCipherBlock = new byte[blockSize];
+                break;
+
+            case EncryptionMode.Ctr:
+                state.counter = GetIV(blockSize);
+                break;
+
+            case EncryptionMode.RandomDelta:
+                state.counter = GetIV(blockSize);
+                state.delta = (byte[])GetDelta(blockSize).Clone();
+                break;
+        }
+
+        return state;
+    }
+
+    private byte[] TransformFileBlock(byte[] inputBlock, FileState state, bool encrypt)
+    {
+        switch (encryptionMode)
+        {
+            case EncryptionMode.Ecb:
+                return encrypt ? cipher.EncryptBlock(inputBlock) : cipher.DecryptBlock(inputBlock);
+
+            case EncryptionMode.Cbc:
+                if (encrypt)
+                {
+                    byte[] mixedBlock = XorBlocks(inputBlock, state.previousBlock!);
+
+                    byte[] cipherBlock = cipher.EncryptBlock(mixedBlock);
+
+                    state.previousBlock = cipherBlock;
+                    return cipherBlock;
+                }
+                else
+                {
+                    byte[] plainBlock = XorBlocks(cipher.DecryptBlock(inputBlock), state.previousBlock!);
+
+                    state.previousBlock = (byte[])inputBlock.Clone();
+                    return plainBlock;
+                }
+
+            case EncryptionMode.Pcbc:
+                if (encrypt)
+                {
+                    byte[] mixedBlock = XorBlocks(inputBlock, state.previousPlainBlock!);
+
+                    mixedBlock = XorBlocks(mixedBlock, state.previousCipherBlock!);
+
+                    byte[] cipherBlock = cipher.EncryptBlock(mixedBlock);
+
+                    state.previousPlainBlock = (byte[])inputBlock.Clone();
+                    state.previousCipherBlock = cipherBlock;
+
+                    return cipherBlock;
+                }
+                else
+                {
+                    byte[] plainBlock = cipher.DecryptBlock(inputBlock);
+
+                    plainBlock = XorBlocks(plainBlock, state.previousPlainBlock!);
+
+                    plainBlock = XorBlocks(plainBlock, state.previousCipherBlock!);
+
+                    state.previousPlainBlock = (byte[])plainBlock.Clone();
+                    state.previousCipherBlock = (byte[])inputBlock.Clone();
+
+                    return plainBlock;
+                }
+
+            case EncryptionMode.Cfb:
+            {
+                byte[] tempBlock = cipher.EncryptBlock(state.previousBlock!);
+
+                byte[] outputBlock = XorBlocks(inputBlock, tempBlock);
+
+                state.previousBlock = encrypt ? outputBlock : (byte[])inputBlock.Clone();
+
+                return outputBlock;
+            }
+
+            case EncryptionMode.Ofb:
+            {
+                state.previousBlock = cipher.EncryptBlock(state.previousBlock!);
+
+                return XorBlocks(inputBlock, state.previousBlock);
+            }
+
+            case EncryptionMode.Ctr:
+            case EncryptionMode.RandomDelta:
+            {
+                if (state.overflowed) throw new InvalidOperationException("Ошибка обработки файла: счётчик CTR переполнился.");
+
+                byte[] tempBlock = cipher.EncryptBlock(state.counter!);
+
+                byte[] outputBlock = XorBlocks(inputBlock, tempBlock);
+
+                if (encryptionMode == EncryptionMode.Ctr)
+                {
+                    state.overflowed = !TryCount(state.counter!);
+                }
+                else
+                {
+                    state.counter = AddBlocks(state.counter!, state.delta);
+                }
+
+                return outputBlock;
+            }
+
+            default:
+                throw new NotSupportedException("Ошибка обработки файла: некорректный режим.");
+        }
     }
 }
 

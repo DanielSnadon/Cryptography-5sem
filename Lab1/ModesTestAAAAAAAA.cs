@@ -14,7 +14,8 @@ public static class TestCipherContext
 
         byte[][] testData =
         {
-            new byte[] { 0x11, 0x22, 0x33 },
+            new byte[] { 0x00 },
+            new byte[] { 0x00, 0x22, 0x33 },
             new byte[] { 0x10, 0x21, 0x32, 0x43, 0x54, 0x65, 0x76, 0x87 },
             new byte[] { 0x01, 0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0x9A, 0xAB, 0xBC, 0xCD }
         };
@@ -103,7 +104,7 @@ public static class TestCipherContext
             return TransformBlock(block);
         }
 
-        private byte[] TransformBlock(byte[] block) // Временная замена DES/DEAL
+        private byte[] TransformBlock(byte[] block) // Временно воркаем без DES/DEAL
         {
             if (block == null)
                 throw new ArgumentNullException(nameof(block));
