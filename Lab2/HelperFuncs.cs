@@ -21,4 +21,42 @@ public static class HelperFuncs
 
         return a;
     }
+
+    public static (BigInteger gcd, BigInteger x, BigInteger y)
+    ExtGcd(BigInteger a, BigInteger b)
+{
+    // _ = ax + by
+    BigInteger prevOst = a;
+    BigInteger currOst = b;
+
+    BigInteger prevX = 1;
+    BigInteger prevY = 0;
+    BigInteger currX = 0;
+    BigInteger currY = 1;
+
+    while (currOst != 0)
+    {
+        BigInteger temp = prevOst / currOst;
+        BigInteger nextOst = prevOst - temp * currOst;
+        BigInteger nextX = prevX - temp * currX;
+        BigInteger nextY = prevY - temp * currY;
+
+        prevOst = currOst;
+        prevX = currX;
+        prevY = currY;
+
+        currOst = nextOst;
+        currX = nextX;
+        currY = nextY;
+    }
+
+    if (prevOst < 0)
+    {
+        prevOst = -prevOst;
+        prevX = -prevX;
+        prevY = -prevY;
+    }
+
+    return (prevOst, prevX, prevY);
+}
 }
