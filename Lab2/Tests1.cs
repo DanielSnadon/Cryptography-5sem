@@ -8,34 +8,34 @@ public static class Tests1
     {
         Console.WriteLine("\n< Алгоритмы Евклида >");
 
-        Console.WriteLine($"НОД(48, 18): {NumberTheory.Gcd(48, 18)}; ожидается 6");
+        Console.WriteLine($"НОД(48, 18): {HelperFuncs.Gcd(48, 18)}; ожидается 6");
 
-        Console.WriteLine($"Бинарный НОД(48, 18): {NumberTheory.BinaryGcd(48, 18)}; ожидается 6");
+        Console.WriteLine($"Бинарный НОД(48, 18): {HelperFuncs.BinaryGcd(48, 18)}; ожидается 6");
 
-        var outs = NumberTheory.ExtGcd(48, 18);
+        var outs = HelperFuncs.ExtGcd(48, 18);
         Console.WriteLine($"Расширенный Евклид: НОД = {outs.gcd}, x = {outs.x}, y = {outs.y}");
 
         Console.WriteLine($"Проверка Безу: 48*x + 18*y = {48 * outs.x + 18 * outs.y}; ожидается 6");
 
         Console.WriteLine("\n< Степень по модулю >");
 
-        Console.WriteLine($"3^13 mod 17: {NumberTheory.ModPow(3, 13, 17)}; ожидается 12");
+        Console.WriteLine($"3^13 mod 17: {HelperFuncs.ModPow(3, 13, 17)}; ожидается 12");
 
         Console.WriteLine("\n< Символ Лежандра >");
 
-        Console.WriteLine($"(2/7): {NumberTheory.LegendreSymbol(2, 7)}; ожидается 1");
+        Console.WriteLine($"(2/7): {HelperFuncs.LegendreSymbol(2, 7)}; ожидается 1");
 
-        Console.WriteLine($"(3/7): {NumberTheory.LegendreSymbol(3, 7)}; ожидается -1");
+        Console.WriteLine($"(3/7): {HelperFuncs.LegendreSymbol(3, 7)}; ожидается -1");
 
-        Console.WriteLine($"(14/7): {NumberTheory.LegendreSymbol(14, 7)}; ожидается 0");
+        Console.WriteLine($"(14/7): {HelperFuncs.LegendreSymbol(14, 7)}; ожидается 0");
 
         Console.WriteLine("\n< Символ Якоби >");
 
-        Console.WriteLine($"(2/15): {NumberTheory.JacobiSymbol(2, 15)}; ожидается 1");
+        Console.WriteLine($"(2/15): {HelperFuncs.JacobiSymbol(2, 15)}; ожидается 1");
 
-        Console.WriteLine($"(7/15): {NumberTheory.JacobiSymbol(7, 15)}; ожидается -1");
+        Console.WriteLine($"(7/15): {HelperFuncs.JacobiSymbol(7, 15)}; ожидается -1");
 
-        Console.WriteLine($"(3/15): {NumberTheory.JacobiSymbol(3, 15)}; ожидается 0");
+        Console.WriteLine($"(3/15): {HelperFuncs.JacobiSymbol(3, 15)}; ожидается 0");
 
         Console.WriteLine("\n< Функция Эйлера >");
 
@@ -48,9 +48,9 @@ public static class Tests1
 
             Console.WriteLine(
                 $"n = {n}: " +
-                $"базовое = {NumberTheory.EulerBasic(n)}, " +
-                $"разложение = {NumberTheory.EulerFactorization(n)}, " +
-                $"Фурье = {NumberTheory.EulerFourier(n)}; " +
+                $"Базовое = {HelperFuncs.EulerBasic(n)}, " +
+                $"Разложение = {HelperFuncs.EulerFactorization(n)}, " +
+                $"Фурье = {HelperFuncs.EulerFourier(n)}; " +
                 $"ожидается {expectedPhi[i]}");
         }
 
@@ -63,7 +63,7 @@ public static class Tests1
         {
             int n = carmichaelNumbers[i];
 
-            Console.WriteLine($"lambda({n}): {NumberTheory.Carmichael(n)}; " + $"ожидается {expectedLambda[i]}");
+            Console.WriteLine($"lambda({n}): {HelperFuncs.Carmichael(n)}; " + $"ожидается {expectedLambda[i]}");
         }
     }
 }
