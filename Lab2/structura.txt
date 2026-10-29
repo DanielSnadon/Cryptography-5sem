@@ -1,4 +1,4 @@
-Structura лабораторной работы по RSA:
+-= Structura моей лабораторной работы по RSA =-
 
 IPrimeTest[2]
     |
@@ -12,4 +12,4 @@ PrimeTest[2] <- HelperFuncs[1] -> Tests1[1]
                     \ /
                      |
                      v
-                    Rsa [3]
+                    Rsa [3] -> Tests3 [3]
