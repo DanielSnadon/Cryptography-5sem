@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Security.Cryptography;
 
 namespace CryptoLab2;
 
@@ -98,30 +99,30 @@ public static class HelperFuncs
         return a * dvoiki;
     }
 
-    public static BigInteger ModPow(BigInteger value, BigInteger exponent, BigInteger modulus)
+    public static BigInteger ModPow(BigInteger value, BigInteger exponent, BigInteger mod)
     {
         if (exponent < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(exponent), "Ошибка ModPow: показатель степени не может быть отрицательным.");
         }
-        if (modulus <= 0)
+        if (mod <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(modulus), "Ошибка ModPow: модуль должен быть положительным.");
+            throw new ArgumentOutOfRangeException(nameof(mod), "Ошибка ModPow: модуль должен быть положительным.");
         }
 
-        value %= modulus;
+        value %= mod;
 
         if (value < 0)
-            value += modulus;
+            value += mod;
 
-        BigInteger result = 1 % modulus;
+        BigInteger result = 1 % mod;
 
         while (exponent > 0)
         {
             if (exponent % 2 != 0)
-                result = (result * value) % modulus;
+                result = (result * value) % mod;
 
-            value = (value * value) % modulus;
+            value = (value * value) % mod;
 
             exponent >>= 1;
         }
@@ -287,5 +288,51 @@ public static class HelperFuncs
             result = Nok(result, remaining - 1);
 
         return result;
+    }
+
+    // < Для пунктов 2+ >
+
+    // Генератоор рандомных чисел 1.0
+    public static BigInteger RandomNumber(BigInteger min, BigInteger max)
+    {
+        if (min > max) throw new ArgumentException("Ошибка RandomNumber: min не может быть больше max.");
+        if (min == max)
+            return min;
+
+        BigInteger range = max - min;
+        byte[] bytes = range.ToByteArray(isUnsigned: true);
+        BigInteger value;
+
+        do
+        {
+            RandomNumberGenerator.Fill(bytes);
+            value = new BigInteger(bytes, isUnsigned: true);
+        }
+        while (value > range);
+
+        return min + value;
+    }
+
+    public static BigInteger Inverse(BigInteger a, BigInteger modulus)
+    {
+        if (modulus <= 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(modulus), "Ошибка Inverse: модуль должен быть больше единицы.");
+        }
+        
+        var result = ExtGcd(a, modulus);
+
+        // Обратное существует только для взаимно простых чисел.
+        if (result.gcd != 1)
+            throw new ArgumentException(
+                "Ошибка Inverse: числа не взаимно просты.");
+
+        BigInteger inverse = result.x % modulus;
+
+        // Коэффициент Безу может оказаться отрицательным.
+        if (inverse < 0)
+            inverse += modulus;
+
+        return inverse;
     }
 }
