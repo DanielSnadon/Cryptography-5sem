@@ -319,20 +319,49 @@ public static class HelperFuncs
         {
             throw new ArgumentOutOfRangeException(nameof(modulus), "Ошибка Inverse: модуль должен быть больше единицы.");
         }
-        
+
         var result = ExtGcd(a, modulus);
 
-        // Обратное существует только для взаимно простых чисел.
         if (result.gcd != 1)
-            throw new ArgumentException(
-                "Ошибка Inverse: числа не взаимно просты.");
+        {
+            throw new ArgumentException("Ошибка Inverse: числа не взаимно просты.");
+        }
 
         BigInteger inverse = result.x % modulus;
 
-        // Коэффициент Безу может оказаться отрицательным.
         if (inverse < 0)
             inverse += modulus;
 
         return inverse;
+    }
+
+    public static BigInteger Sqrt(BigInteger n)
+    {
+        if (n < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(n), "Ошибка Sqrt: число не может быть отрицательным.");
+        }
+
+        BigInteger left = 0;
+        BigInteger right = n;
+        BigInteger result = 0;
+
+        while (left <= right)
+        {
+            BigInteger middle = (left + right) / 2;
+            BigInteger square = middle * middle;
+
+            if (square <= n)
+            {
+                result = middle;
+                left = middle + 1;
+            }
+            else
+            {
+                right = middle - 1;
+            }
+        }
+
+        return result;
     }
 }

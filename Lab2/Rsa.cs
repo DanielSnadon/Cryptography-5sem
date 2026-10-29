@@ -30,6 +30,19 @@ public class Rsa
         hasKey = true;
     }
 
+    public (BigInteger n, BigInteger e, BigInteger d, BigInteger phi) GenerateWeakKeys()
+    {
+        var keys = generator.GenerateWeak();
+
+        n = keys.n;
+        e = keys.e;
+        d = keys.d;
+
+        hasKey = true;
+
+        return keys;
+    }
+
     public (BigInteger n, BigInteger e) GetPublicKey()
     {
         if (!hasKey)
@@ -151,6 +164,38 @@ public class Rsa
                     continue;
 
                 return (n, e, d);
+            }
+        }
+
+        public (BigInteger n, BigInteger e, BigInteger d, BigInteger phi) GenerateWeak()
+        {
+            if (bitLength < 8)
+            {
+                throw new InvalidOperationException("Ошибка GenerateWeak: используйте битовую длину не меньше 8.");
+            }
+
+            while (true)
+            {
+                var primes = RandomPrimes();
+
+                BigInteger n = primes.p * primes.q;
+                BigInteger phi = (primes.p - 1) * (primes.q - 1);
+
+                BigInteger fourthRoot = HelperFuncs.Sqrt(HelperFuncs.Sqrt(n));
+                BigInteger maxD = fourthRoot / 3;
+
+                // (Специально малый d)
+                BigInteger d = HelperFuncs.RandomNumber(3, maxD);
+
+                if (HelperFuncs.Gcd(d, phi) != 1)
+                    continue;
+
+                // Для Винера
+                if (81 * d * d * d * d >= n)
+                    continue;
+
+                BigInteger e = HelperFuncs.Inverse(d, phi);
+                return (n, e, d, phi);
             }
         }
     }
