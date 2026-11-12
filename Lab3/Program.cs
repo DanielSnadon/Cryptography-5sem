@@ -1,6 +1,7 @@
 ﻿using CryptoLab3;
 
 // _ _ _ Punkt 1 _ _ _
+Console.WriteLine("ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1 ПУНКТ 1");
 
 // Обычный функционал:
 
@@ -50,4 +51,29 @@ try
 catch (ArgumentException exception)
 {
     Console.WriteLine($"Multiply отклоняет приводимый модуль. {exception}");
+}
+
+// _ _ _ Punkt 2 _ _ _
+Console.WriteLine("ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2 ПУНКТ 2");
+
+int[] sizes = { 128, 192, 256 };
+var testRandom = new Random(42);
+
+foreach (int blockBits in sizes)
+{
+    foreach (int keyBits in sizes)
+    {
+        var cipher = new Rijndael(blockBits, 0x1B);
+        var testKey = new byte[keyBits / 8];
+        var testBlock = new byte[blockBits / 8];
+
+        testRandom.NextBytes(testKey);
+        testRandom.NextBytes(testBlock);
+
+        cipher.SetKey(testKey);
+        byte[] decryptedBlock = cipher.DecryptBlock(cipher.EncryptBlock(testBlock));
+
+        bool passed = decryptedBlock.AsSpan().SequenceEqual(testBlock);
+        Console.WriteLine($"Блок {blockBits}, ключ {keyBits}: {(passed ? "OK" : "FAIL")}");
+    }
 }
