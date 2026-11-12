@@ -17,6 +17,9 @@ byte inverse = service.Inverse(0x02, 0x1B);
 Console.WriteLine($"Обратный к 0x02: 0x{inverse:X2}");
 Console.WriteLine($"Произведение: 0x{service.Multiply(0x02, inverse, 0x1B):X2}");
 
+var factors = service.Factorize(0b11011);
+Console.WriteLine($"Множители: {string.Join(", ", factors)}");
+
 // Исключения:
 
 try

@@ -109,4 +109,76 @@ public sealed class HelperFuncs
 
         return result;
     }
+
+    private static int Degree(BigInteger polynomial)
+    {
+        int degree = -1;
+
+        while (polynomial > BigInteger.Zero)
+        {
+            polynomial >>= 1;
+            degree++;
+        }
+
+        return degree;
+    }
+
+    private static (BigInteger Answer, BigInteger Remainder) DividePolynoms(BigInteger number, BigInteger divisor)
+    {
+        if (divisor == BigInteger.Zero)
+            throw new DivideByZeroException("Ошибка dividePolynoms: некорректный делитель.");
+
+        BigInteger answer = BigInteger.Zero;
+        BigInteger remainder = number;
+        int divisorDegree = Degree(divisor);
+
+        for (int degree = Degree(number); degree >= divisorDegree; degree--)
+        {
+            if ((remainder & (BigInteger.One << degree)) == BigInteger.Zero)
+                continue;
+
+            int shift = degree - divisorDegree;
+
+            answer |= BigInteger.One << shift;
+            remainder ^= divisor << shift;
+        }
+
+        return (answer, remainder);
+    }
+
+    public List<BigInteger> Factorize(BigInteger polynomial)
+    {
+        if (polynomial <= BigInteger.Zero)
+        {
+            throw new ArgumentOutOfRangeException("Ошибка factorize: битовая запись полинома должна быть положительной.");
+        }
+
+        var factors = new List<BigInteger>();
+        BigInteger remaining = polynomial;
+
+        for (int degree = 1; degree <= Degree(remaining) / 2; degree++)
+        {
+            BigInteger first = BigInteger.One << degree;
+            BigInteger last = first << 1;
+
+            for (BigInteger candidate = first; candidate < last; candidate++)
+            {
+                while (true)
+                {
+                    var (quotient, remainder) = DividePolynoms(remaining, candidate);
+
+                    if (remainder != BigInteger.Zero)
+                        break;
+
+                    factors.Add(candidate);
+                    remaining = quotient;
+                }
+            }
+        }
+
+        if (remaining != BigInteger.One)
+            factors.Add(remaining);
+
+        return factors;
+    }
 }
