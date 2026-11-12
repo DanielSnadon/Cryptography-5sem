@@ -6,5 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="../Lab1/CryptoLab1.csproj" />
+  </ItemGroup>
 </Project>

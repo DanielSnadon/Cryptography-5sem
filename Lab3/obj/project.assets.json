@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "CryptoLab1/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/CryptoLab1.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CryptoLab1.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "CryptoLab1/1.0.0": {
+      "type": "project",
+      "path": "../Lab1/CryptoLab1.csproj",
+      "msbuildProject": "../Lab1/CryptoLab1.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "CryptoLab1 >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/home/snadon/.nuget/packages/": {}
@@ -32,7 +51,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/snadon/Cryptography-5sem/Lab1/CryptoLab1.csproj": {
+              "projectPath": "/home/snadon/Cryptography-5sem/Lab1/CryptoLab1.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -13,3 +13,10 @@
 /home/snadon/Cryptography-5sem/Lab3/obj/Debug/net10.0/CryptoLab3.pdb
 /home/snadon/Cryptography-5sem/Lab3/obj/Debug/net10.0/CryptoLab3.genruntimeconfig.cache
 /home/snadon/Cryptography-5sem/Lab3/obj/Debug/net10.0/ref/CryptoLab3.dll
+/home/snadon/Cryptography-5sem/Lab3/obj/Debug/net10.0/CryptoLab3.csproj.AssemblyReference.cache
+/home/snadon/Cryptography-5sem/Lab3/bin/Debug/net10.0/CryptoLab1.deps.json
+/home/snadon/Cryptography-5sem/Lab3/bin/Debug/net10.0/CryptoLab1.runtimeconfig.json
+/home/snadon/Cryptography-5sem/Lab3/bin/Debug/net10.0/CryptoLab1
+/home/snadon/Cryptography-5sem/Lab3/bin/Debug/net10.0/CryptoLab1.dll
+/home/snadon/Cryptography-5sem/Lab3/bin/Debug/net10.0/CryptoLab1.pdb
+/home/snadon/Cryptography-5sem/Lab3/obj/Debug/net10.0/CryptoLab3.csproj.Up2Date

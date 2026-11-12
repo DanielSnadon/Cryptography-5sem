@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CryptoLab2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+555d5b8603f62724830b52759ef42e2dd01c3505")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c8bd0979d3889ca222c84f886c5b2d90dd7af130")]
 [assembly: System.Reflection.AssemblyProductAttribute("CryptoLab2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CryptoLab2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

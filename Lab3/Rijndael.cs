@@ -1,8 +1,9 @@
 using System;
+using CryptoLab1;
 
 namespace CryptoLab3;
 
-public sealed class Rijndael
+public sealed class Rijndael : IBlockCipher, IKeyExpansion, IRoundFunction
 {
     private readonly byte modulus;
     private readonly HelperFuncs funcs = new();
@@ -202,16 +203,16 @@ public sealed class Rijndael
         SubBytes(word);
     }
 
-    private byte[][] ExpandKey(byte[] key)
+    public byte[][] GenerateRoundKeys(byte[] key)
     {
         if (key is null)
         {
-            throw new ArgumentNullException("Ошибка expandKey: некорректный ключ.");
+            throw new ArgumentNullException("Ошибка GenerateRoundKeys: некорректный ключ.");
         }
 
         if (key.Length != 16 && key.Length != 24 && key.Length != 32)
         {
-            throw new ArgumentException("Ошибка expandKey: длина ключа должна быть 16, 24 или 32 байта.");
+            throw new ArgumentException("Ошибка GenerateRoundKeys: длина ключа должна быть 16, 24 или 32 байта.");
         }
 
         int blockWords = BlockSizeBytes / 4;
@@ -261,7 +262,7 @@ public sealed class Rijndael
 
     public void SetKey(byte[] key)
     {
-        roundKeys = ExpandKey(key);
+        roundKeys = GenerateRoundKeys(key);
     }
 
     // {{{ Main funcs }}}
@@ -285,10 +286,7 @@ public sealed class Rijndael
 
         for (int round = 1; round < lastRound; round++)
         {
-            SubBytes(state);
-            ShiftRows(state);
-            MixColumns(state);
-            AddRoundKey(state, keys[round]);
+            ApplyFullRound(state, keys[round]);
         }
 
         SubBytes(state);
@@ -326,6 +324,34 @@ public sealed class Rijndael
         }
 
         AddRoundKey(state, keys[0]);
+
+        return state;
+    }
+
+    private void ApplyFullRound(byte[] state, byte[] roundKey)
+    {
+        SubBytes(state);
+        ShiftRows(state);
+        MixColumns(state);
+        AddRoundKey(state, roundKey);
+    }
+
+    public byte[] RoundFunc(byte[] inputBlock, byte[] roundKey)
+    {
+        ArgumentNullException.ThrowIfNull(inputBlock);
+        ArgumentNullException.ThrowIfNull(roundKey);
+
+        if (inputBlock.Length != BlockSizeBytes)
+        {
+            throw new ArgumentException("Ошибка roundFunc: неверный размер блока.", nameof(inputBlock));
+        }
+        if (roundKey.Length != BlockSizeBytes)
+        {
+            throw new ArgumentException("Ошибка roundFunc: неверный размер раундового ключа.", nameof(roundKey));
+        }
+
+        byte[] state = (byte[])inputBlock.Clone();
+        ApplyFullRound(state, roundKey);
 
         return state;
     }

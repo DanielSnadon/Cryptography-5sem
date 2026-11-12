@@ -503,7 +503,6 @@ public class CipherContext
         if (blockSize <= 0) throw new InvalidOperationException("Ошибка DecryptCBC: размер блока должен быть больше нуля.");
         if (data.Length % blockSize != 0) throw new ArgumentException("Ошибка DecryptCBC: длина шифротекста должна быть кратна размеру блока.");
 
-        byte[] previousBlock = GetIV(blockSize);
         byte[] decryptedData = new byte[data.Length];
 
         int blockCount = data.Length / blockSize;
