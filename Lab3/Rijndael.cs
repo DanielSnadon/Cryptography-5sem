@@ -70,16 +70,9 @@ public sealed class Rijndael : IBlockCipher, IKeyExpansion, IRoundFunction
         {
             byte value = (byte)input;
 
-            byte beforeAffine = (byte)(
-                RotateLeftByte(value, 1)
-                ^ RotateLeftByte(value, 3)
-                ^ RotateLeftByte(value, 6)
-                ^ 0x05);
+            byte beforeAffine = (byte)(RotateLeftByte(value, 1) ^ RotateLeftByte(value, 3) ^ RotateLeftByte(value, 6) ^ 0x05);
 
-            // Прямая замена обрабатывает ноль отдельно.
-            table[input] = beforeAffine == 0
-                ? (byte)0
-                : funcs.Inverse(beforeAffine, modulus);
+            table[input] = beforeAffine == 0 ? (byte)0 : funcs.Inverse(beforeAffine, modulus);
         }
 
         return table;
